@@ -37,7 +37,6 @@ if __name__ == "__main__":
         nurse = Nurse(
             name=fake.name(),
             doctor_id=random.randint(1, 10),
-            patient_id=random.randint(1, 51)
         )
         session.add(nurse)
         session.commit()
@@ -48,17 +47,30 @@ if __name__ == "__main__":
         patient = Patient(
             name=fake.name(),
             doctor_id=random.randint(1, 10),
-            nurse_id=random.randint(1, 15),
             ward_id=random.randint(1, 10),
         )
         session.add(patient)
         session.commit()
         patients.append(patient)
 
+    ward_names = [
+        "Respiratory Care Unit",
+        "Gastroenterology Ward",
+        "Geriatrics Ward",
+        "Obstetrics and Gynecology Ward",
+        "Trauma Ward",
+        "Nephrology Ward",
+        "Pulmonology Ward",
+        "Hematology Ward",
+        "Dermatology Ward",
+        "Endocrinology Ward"
+    ]
+
+
     wards = []
     for _ in range(10):
         ward = Ward(
-            name=f"{fake.word()} Ward"
+            name=random.choice(ward_names)
         )
         session.add(ward)
         session.commit()
@@ -71,8 +83,12 @@ if __name__ == "__main__":
         # Randomly select patients to assign to the nurse
         patients_to_assign = random.sample(patients, num_patients)
         # Add nurse-patient relationships to the association table
-        nurse.patients.extend(patients_to_assign)
-        session.commit()
+        for patient in patients_to_assign:
+            # Check if the relationship already exists
+            existing_relationship = session.query(nurses_patients).filter_by(nurse_id=nurse.id, patient_id=patient.id).first()
+            if not existing_relationship:
+                nurse.patients.append(patient)
+                session.commit()
 
     session.close()
 
