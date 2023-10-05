@@ -92,3 +92,7 @@ class Ward(Base):
         return f"Ward ID({self.id}), "\
             f"Ward name: {self.name}"
     
+
+
+    # Defining the class methods
+    
