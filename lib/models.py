@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Table, func
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship, backref
 import click
@@ -164,6 +166,7 @@ class Patient(Base):
             return ward
         else:
             return f"No ward founc for patient {patient_id}"
+
 
 
     def __repr__(self):
