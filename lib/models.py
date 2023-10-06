@@ -1,5 +1,6 @@
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Table, func
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship, backref
+import click
 
 Base = declarative_base()
 engine = create_engine('sqlite:///database.db')
@@ -44,17 +45,20 @@ class Doctor(Base):
     @classmethod
     def doctor_details(cls, doctor_id):
         # Returns the details about a specific doctor, searches by ID
-        return session.query(Doctor).filter_by(id=doctor_id).first()
+        result = session.query(Doctor).filter_by(id=doctor_id).first()
+        if result is not None:
+            return result
+        return f"Doctor with TBora ID {doctor_id} not found!"
     
     @classmethod
     def get_patients(cls, doctor_id):
-        patients =  session.query(Patient.name).join(Doctor, onclause=Doctor.id == Patient.doctor_id).filter(Doctor.id == doctor_id).all()
+        patients =  session.query(Patient).join(Doctor, onclause=Doctor.id == Patient.doctor_id).filter(Doctor.id == doctor_id).all()
         if patients is not None:
             print(f"Patients for Doctor {doctor_id}")
             for patient in patients:
                 print(patient)
         else:
-            print (f"No patients found for Doctor ID {doctor_id}")
+            print (f"No patients found for Doctor {doctor_id}")
 
     @classmethod
     def get_nurses(cls, doctor_id):
@@ -90,7 +94,7 @@ class Nurse(Base):
 
         if nurse is not None:
             return nurse
-        return f"Nurse {nurse_id} not found!"
+        return f"Nurse with TBora ID {nurse_id} not found!"
     
     @classmethod
     def get_doctor(cls, nurse_id):
@@ -131,7 +135,7 @@ class Patient(Base):
         patient = session.query(Patient).filter_by(id = patient_id).first()
         if patient is not None:
             return patient
-        return f"Patient {patient_id} not found!"
+        return f"Patient Adm Number {patient_id} not found!"
     
     @classmethod
     def get_doctor(cls, patient_id):
@@ -163,7 +167,7 @@ class Patient(Base):
 
 
     def __repr__(self):
-        return f"Patient ID: ({self.id}), "\
+        return f"Patient Reg Number: ({self.id}), "\
             f"Patient name: {self.name}"\
 
 class Ward(Base):
@@ -179,7 +183,7 @@ class Ward(Base):
     # CLASS METHODS
     @classmethod
     def get_details(cls, ward_id):
-        return session.query(Ward).filter(Ward.id == ward_id)
+        return session.query(Ward).filter(Ward.id == ward_id).first()
 
     @classmethod
     def number_of_patients(cls, ward_id):
@@ -193,5 +197,93 @@ class Ward(Base):
     
 
 
+
+class HospitalManagement:
+    def __init__(self):
+        pass
+
+    def main_menu(self):
+        while True:
+            click.echo("Welcome to Tiba Bora Hospital")
+            choice = click.prompt("Please select an option\n1. Doctors.\n2. Nurses.\n3. Patients\n4. Wards\n(Q or q to quit)\nSelect an option", type=str)
+            
+            if choice.lower() == 'q':
+                break
+
+            if choice == '1':
+                self.doctor_menu()
+            elif choice == '2':
+                self.nurse_menu()
+            elif choice == '3':
+                self.patient_menu()
+            elif choice == '4':
+                self.ward_menu()
+            else:
+                click.echo("Invalid option, please try again!")
+
+    def doctor_menu(self):
+        sub_option = click.prompt("What would you like to do?\n1. Get details of a doctor.\n2. See nurses assigned to a particular doctor.\n3. See patients for a particular doctor\nSelect an option", type=int)
+
+        if sub_option == 1:
+            doctor_id = click.prompt("Enter TBora ID for the doctor you want to search", type=int)
+            print(Doctor.doctor_details(doctor_id))
+        elif sub_option == 2:
+            doctor_id = click.prompt("Enter TBora ID for doctor to get the nurses under the doctor", type=int)
+            Doctor.get_nurses(doctor_id)
+        elif sub_option == 3:
+            doctor_id = click.prompt("Enter TBora ID for doctor to retrieve the patients for the doctor")
+            Doctor.get_patients(doctor_id)
+        else:
+            print("Invalid option selected!")
+    def nurse_menu(self):
+        sub_option = click.prompt("What would you like to do?\n1.Get nurse details using TBora ID\n2. See doctor a particular nurse reports to.\n3. View patients assigned to a specific nurse\nSelect an option", type=int)
+
+        if sub_option == 1:
+            nurse_id = click.prompt("Enter TBora ID for the nurse to get the full details", type=int)
+            print(Nurse.get_details(nurse_id))
+        elif sub_option == 2:
+            nurse_id = click.prompt("Enter TBora ID for nurse to get the doctor assigned the nurse", type=int)
+            print(Nurse.get_doctor(nurse_id))
+        elif sub_option == 3:
+            nurse_id = click.prompt("Enter TBora ID for nurse to see patients assigned to a particular nurse", type=int)
+            print(Nurse.get_patients(nurse_id))
+        else:
+            print("Invalid option!")
     
-    
+    def patient_menu(self):
+        sub_option = click.prompt("What would you like to do?\n1. Get details of a particular patient.\n2. See the doctor assigned to a patient\n3. See nurses assigned to a patient\n4. See ward a patient is admitted to\nSelect an option", type=int)
+
+        if sub_option == 1:
+            patient_id = click.prompt("Enter patient admission number", type=int)
+            print(Patient.get_details(patient_id))
+        elif sub_option == 2:
+            patient_id = click.prompt("Enter patient admission number to see the doctor", type=int)
+            print(Patient.get_doctor(patient_id))
+        elif sub_option == 3:
+            patient_id = click.prompt("Enter patient admission number to get the nurse(s) assigned to a patient", type=int)
+            print(Patient.get_nurses(patient_id))
+        elif sub_option == 4:
+            patient_id = click.prompt("Enter patient admission number to see the ward patient is admitted to",type=int)
+            print(Patient.get_ward(patient_id))
+        else:
+            print("Invalid option, try again!")
+
+    def ward_menu(self):
+        sub_option = click.prompt("What would you like to do?\n1. Get details of a particular ward.\n2. See the total number of patients admitted in a particular ward.\nSelect an option", type=int)
+
+        if sub_option == 1:
+            ward_id = click.prompt("Enter ward number", type=int)
+            print(Ward.get_details(ward_id))
+        elif sub_option == 2:
+            ward_id = click.prompt("Enter ward number", type=int)
+            print(Ward.number_of_patients(ward_id))
+        else:
+            print("Invalid option, try again!")
+
+@click.command()
+def main():
+    hospital_management = HospitalManagement()
+    hospital_management.main_menu()
+
+if __name__ == "__main__":
+    main()
