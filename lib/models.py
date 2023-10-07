@@ -29,7 +29,6 @@ nurses_patients = Table(
     extend_existing=True
 )
 
-
 # Creating our models
 class Doctor(Base):
     __tablename__ = "doctors"
@@ -76,7 +75,6 @@ class Doctor(Base):
         return f"Doctor id ({self.id}), "\
             f"Name: {self.name}, "\
             f"Specialization: {self.specialization}"
-
     
 class Nurse(Base):
     __tablename__ = "nurses"
@@ -197,9 +195,6 @@ class Ward(Base):
     def __repr__(self):
         return f"Ward ID({self.id}), "\
             f"Ward name: {self.name}"
-    
-
-
 
 class HospitalManagement:
     def __init__(self):
